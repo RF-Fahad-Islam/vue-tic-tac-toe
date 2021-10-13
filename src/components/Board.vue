@@ -1,13 +1,43 @@
 <template>
   <div class="container">
-    <h1 class="text-center mx-2" v-if="winner">Player {{ winner }} wins!</h1>
+    <div class="form-check form-switch switch">
+      <input
+        class="form-check-input"
+        type="checkbox"
+        role="switch"
+        id="flexSwitchCheckDefault"
+        v-model="isComputer"
+        :disabled="squares.flat().filter(x=> x!=='').length>0"
+      />
+      <label class="form-check-label mx-2" for="flexSwitchCheckDefault"
+        >Computer</label
+      >
+    </div>
+    <h1 class="my-2" v-if="!winner">Tic Tac Toe</h1>
+      <h3 class="alert alert-warning" v-if="!isComputer&&!winner" >Player Move : "{{player}}"</h3>
+    <h1 v-if="winner=='draw'" class="alert alert-warning">Its A Draw!</h1>
+    <h1
+      class="text-center mx-2 alert alert-success"
+      :class="[isComputer && winner === 'O' ? 'alert-danger' : 'alert success']"
+      v-if="winner!='draw'&&winner"
+    >
+    <span v-if="!isComputer">
+      <span v-if="winner!='draw'"> Player {{ winner }} wins! </span>
+    </span>
+      <span v-else>
+        <strong v-if="winner == 'X'">You</strong>
+        <strong v-else>Computer</strong>
+        Wins!
+      </span>
+    </h1>
     <!-- <h1 v-if="!winner"></h1> -->
-    <h1>You VS Computer</h1>
+
     <div class="board d-block margin-auto">
       <transition-group
         name="custom-classes-transition"
         enter-active-class="animated tada"
-        leave-active-class="animated bounceOutRight" tag="div"
+        leave-active-class="animated bounceOutRight"
+        tag="div"
       >
         <div v-for="(row, x) in squares" :key="x" class="row">
           <div
@@ -49,6 +79,7 @@ export default {
       color: computed(() => {
         return utils.gameEnd ? "#eee" : "white";
       }),
+      isComputer: true,
     });
 
     const winConditions = [
@@ -69,12 +100,15 @@ export default {
       if (squares.value[x][y] === "" && !utils.gameEnd) {
         squares.value[x][y] = utils.player;
         playerSwap(); //!Swap the player to "O"
-        executeComputerChoice(); //!Running Computer Move
+        if(utils.isComputer) handleNextPlayer(); //!Running Computer Move
       }
     };
 
-    const executeComputerChoice = () => {
-      if (utils.player === "O" && squares.value.filter(x=> x!=="").length < 9) {
+    const handleNextPlayer = () => {
+      if (
+        utils.player === "O" &&
+        squares.value.filter((x) => x !== "").length < 9
+      ) {
         const newSquares = computerChoice(squares.value.flat());
         squares.value = newSquares;
       }
@@ -89,11 +123,11 @@ export default {
       //? Making the computer understand the action based on the positions and user actions
       for (let conditions of winConditions) {
         const [a, b, c] = conditions;
-        if (square[a]==="" && square[b]==="X" && square[c]==="X") {
+        if (square[a] === "" && square[b] === "X" && square[c] === "X") {
           return a;
-        } else if (square[b]==="" && square[a]==="X" && square[c]==="X") {
+        } else if (square[b] === "" && square[a] === "X" && square[c] === "X") {
           return b;
-        } else if (square[c]==="" && square[a]==="X" && square[b] === "X") {
+        } else if (square[c] === "" && square[a] === "X" && square[b] === "X") {
           return c;
         }
       }
@@ -106,7 +140,10 @@ export default {
       if (choice === null) {
         do {
           choice = Math.floor(Math.random() * 9); //Random number between 0-8
-        } while (!square[choice] && square.filter(x=> x!=="").length === 8);
+        } while (
+          !square[choice] &&
+          square.filter((x) => x !== "").length === 8
+        );
       }
       square[choice] = utils.player;
       const newSquares = [];
@@ -118,10 +155,10 @@ export default {
 
     const winner = computed(() => {
       const win = findWinner(squares.value.flat());
-      if (!win && squares.value.filter(x=> x!=="").length === 9) {
-        return "draw" 
+      if (!win && squares.value.flat().filter((x) => x !== "").length === 9) {
+        return "draw";
       }
-      return win
+      return win;
     });
 
     const reset = () => {
@@ -180,5 +217,15 @@ export default {
 }
 .activeBox {
   background: skyblue;
+}
+
+.switch {
+  display: flex;
+  justify-content: center;
+  font-size: 29px;
+  cursor: pointer !important;
+}
+input {
+  cursor: pointer;
 }
 </style>
