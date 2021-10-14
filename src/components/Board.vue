@@ -1,44 +1,60 @@
 <template>
-  <div class="container">
-    <div class="form-check form-switch switch">
-      <input
-        class="form-check-input"
-        type="checkbox"
-        role="switch"
-        id="flexSwitchCheckDefault"
-        v-model="isComputer"
-        :disabled="squares.flat().filter(x=> x!=='').length>0"
-      />
-      <label class="form-check-label mx-2" for="flexSwitchCheckDefault"
-        >Computer</label
-      >
-    </div>
-    <h1 class="my-2" v-if="!winner">Tic Tac Toe</h1>
-      <h3 class="alert alert-warning" v-if="!isComputer&&!winner" >Player Move : "{{player}}"</h3>
-    <h1 v-if="winner=='draw'" class="alert alert-warning">Its A Draw!</h1>
-    <h1
-      class="text-center mx-2 alert alert-success"
-      :class="[isComputer && winner === 'O' ? 'alert-danger' : 'alert success']"
-      v-if="winner!='draw'&&winner"
-    >
-    <span v-if="!isComputer">
-      <span v-if="winner!='draw'"> Player {{ winner }} wins! </span>
-    </span>
-      <span v-else>
-        <strong v-if="winner == 'X'">You</strong>
-        <strong v-else>Computer</strong>
-        Wins!
-      </span>
-    </h1>
-    <!-- <h1 v-if="!winner"></h1> -->
+  <transition
+    name="custom-classes-transition"
+    enter-active-class="animated tada"
+    leave-active-class="animated bounceOutRight"
+  >
+    <div class="container">
+      
+      <div class="d-block mx-auto">
+        <div class="btn btn-block btn-outline-danger my-2" @click="reset">
+          Reset
+        </div>
+      </div>
+      <div class="form-check form-switch switch">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          role="switch"
+          id="flexSwitchCheckDefault"
+          v-model="isComputer"
+          :disabled="usedBoxes > 0"
+        />
+        <label class="form-check-label mx-2" for="flexSwitchCheckDefault"
+          >Computer</label
+        >
+      </div>
 
-    <div class="board d-block margin-auto">
-      <transition-group
-        name="custom-classes-transition"
-        enter-active-class="animated tada"
-        leave-active-class="animated bounceOutRight"
-        tag="div"
+      <h1 class="my-2" v-if="!winner">
+        <img src="../assets/logo.png" lazy alt="Logo" width="40" /> Tic Tac Toe
+      </h1>
+
+      <h4
+        class="p-2 alert-warning d-inline-block rounded-2"
+        v-if="!isComputer && !winner"
       >
+        Player Move : "{{ player }}"
+      </h4>
+      <h1 v-if="winner == 'draw'" class="alert alert-warning">Its A Draw!</h1>
+      <h1
+        class="text-center mx-2 alert alert-success"
+        :class="[
+          isComputer && winner === 'O' ? 'alert-danger' : 'alert success',
+        ]"
+        v-if="winner != 'draw' && winner"
+      >
+        <span v-if="!isComputer">
+          <span v-if="winner != 'draw'"> Player {{ winner }} wins! </span>
+        </span>
+        <span v-else>
+          <strong v-if="winner == 'X'">You</strong>
+          <strong v-else>Computer</strong>
+          Wins!
+        </span>
+      </h1>
+      <!-- <h1 v-if="!winner"></h1> -->
+
+      <div class="board d-block margin-auto">
         <div v-for="(row, x) in squares" :key="x" class="row">
           <div
             v-for="(square, y) in row"
@@ -49,15 +65,29 @@
             {{ square }}
           </div>
         </div>
-      </transition-group>
-    </div>
-
-    <div class="d-block">
-      <div class="btn btn-block btn-outline-danger my-2" @click="reset">
-        Reset
       </div>
+
+      <footer class="mt-3">
+        <div class="d-flex justify-content-between">
+          <h5
+            class="p-2 rounded-pill text-primary font-weight-bolder"
+          >
+            <span v-if="isComputer">You</span> <span v-else>Player X</span>:
+            <span class="font-weight-bold">{{ playerXPoints }}</span>
+          </h5>
+          <h5 class="p-2 rounded-pill alert-info d-block mx-3 text-black">
+            <span v-if="isComputer">Round : </span>
+            <span class="font-weight-bold">{{ round }}</span>
+          </h5>
+          <h5 class="p-2 rounded-pill text-danger">
+            <span v-if="isComputer">Computer</span>
+            <span v-else>Player Y</span> :
+            <span class="font-weight-bold">{{ playerOPoints }}</span>
+          </h5>
+        </div>
+      </footer>
     </div>
-  </div>
+  </transition>
 </template>
 
 <script>
@@ -80,6 +110,15 @@ export default {
         return utils.gameEnd ? "#eee" : "white";
       }),
       isComputer: true,
+      usedBoxes: computed(() => {
+        return squares.value.flat().filter((x) => x !== "").length;
+      }),
+      leftBoxes: computed(() => {
+        return squares.value.flat().filter((x) => x === "").length;
+      }),
+      playerXPoints: 0,
+      playerOPoints: 0,
+      round: 1,
     });
 
     const winConditions = [
@@ -100,15 +139,12 @@ export default {
       if (squares.value[x][y] === "" && !utils.gameEnd) {
         squares.value[x][y] = utils.player;
         playerSwap(); //!Swap the player to "O"
-        if(utils.isComputer) handleNextPlayer(); //!Running Computer Move
+        if (utils.isComputer) handleNextPlayer(); //!Running Computer Move
       }
     };
 
     const handleNextPlayer = () => {
-      if (
-        utils.player === "O" &&
-        squares.value.filter((x) => x !== "").length < 9
-      ) {
+      if (utils.player === "O" && utils.usedBoxes < 9) {
         const newSquares = computerChoice(squares.value.flat());
         squares.value = newSquares;
       }
@@ -140,10 +176,7 @@ export default {
       if (choice === null) {
         do {
           choice = Math.floor(Math.random() * 9); //Random number between 0-8
-        } while (
-          !square[choice] &&
-          square.filter((x) => x !== "").length === 8
-        );
+        } while (square[choice] !== "");
       }
       square[choice] = utils.player;
       const newSquares = [];
@@ -153,11 +186,23 @@ export default {
       return newSquares;
     };
 
+    const updatePlayerPoints = (winner) => {
+      if (winner === "X") {
+        utils.playerXPoints = utils.playerXPoints + 1;
+      } else if (winner === "O") {
+        utils.playerOPoints = utils.playerOPoints + 1;
+      }
+      if (winner) {
+        utils.round = utils.round + 1;
+      }
+    };
+
     const winner = computed(() => {
       const win = findWinner(squares.value.flat());
       if (!win && squares.value.flat().filter((x) => x !== "").length === 9) {
         return "draw";
       }
+      updatePlayerPoints(win);
       return win;
     });
 
@@ -194,10 +239,19 @@ export default {
 </script>
 
 <style>
+@import url("https://fonts.googleapis.com/css2?family=Kanit:wght@500&family=Varela+Round&display=swap");
 .board {
   max-width: 300px;
   display: block;
   margin: auto;
+}
+h1 {
+  font-family: "Varela Round", sans-serif;
+  font-size: 2rem;
+}
+
+.alert {
+  padding: 4px !important;
 }
 
 .square {
@@ -211,6 +265,7 @@ export default {
   font-size: 68px;
   cursor: pointer;
   background: v-bind(color);
+  font-family: "Varela Round", sans-serif;
 }
 .square:hover {
   background: #eee;
@@ -227,5 +282,8 @@ export default {
 }
 input {
   cursor: pointer;
+}
+h5 {
+  font-family: "Kanit", sans-serif;
 }
 </style>
