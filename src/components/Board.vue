@@ -14,11 +14,11 @@
         >
       </div>
 
-  <transition-group
+  <!-- <transition-group
     name="custom-classes-transition"
-    enter-active-class="animated tada"
+    enter-active-class="animated bounceIn"
     leave-active-class="animated bounceOut"
-  >
+  > -->
       <h1 class="my-2" v-if="!winner">
         <img src="../assets/logo.png" lazy alt="Logo" width="40" /> Tic Tac Toe
       </h1>
@@ -86,7 +86,7 @@
           </h5>
         </div>
       </footer>
-  </transition-group>
+  <!-- </transition-group> -->
     </div>
 </template>
 
