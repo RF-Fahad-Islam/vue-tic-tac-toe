@@ -5,12 +5,7 @@
     leave-active-class="animated bounceOutRight"
   >
     <div class="container">
-      
-      <div class="d-block mx-auto">
-        <div class="btn btn-block btn-outline-danger my-2" @click="reset">
-          Reset
-        </div>
-      </div>
+     
       <div class="form-check form-switch switch">
         <input
           class="form-check-input"
@@ -66,6 +61,12 @@
           </div>
         </div>
       </div>
+ 
+      <div class="d-block mx-auto">
+        <div class="btn btn-block btn-outline-danger my-2" @click="reset">
+          Reset
+        </div>
+      </div>
 
       <footer class="mt-3">
         <div class="d-flex justify-content-between">
@@ -75,10 +76,10 @@
             <span v-if="isComputer">You</span> <span v-else>Player X</span>:
             <span class="font-weight-bold">{{ playerXPoints }}</span>
           </h5>
-          <h5 class="p-2 rounded-pill alert-info d-block mx-3 text-black">
+          <h3 class="p-2 rounded-pill d-block mx-3 font-weight-bold text-black">
             <span v-if="isComputer">Round : </span>
             <span class="font-weight-bold">{{ round }}</span>
-          </h5>
+          </h3>
           <h5 class="p-2 rounded-pill text-danger">
             <span v-if="isComputer">Computer</span>
             <span v-else>Player Y</span> :
@@ -283,7 +284,7 @@ h1 {
 input {
   cursor: pointer;
 }
-h5 {
+h5,h4 {
   font-family: "Kanit", sans-serif;
 }
 </style>
