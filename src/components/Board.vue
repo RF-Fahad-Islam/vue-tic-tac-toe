@@ -69,14 +69,14 @@
       </div>
 
       <footer class="mt-3">
-        <div class="d-flex justify-content-between">
+        <div class="d-flex justify-content-around">
           <h5
             class="p-2 rounded-pill text-primary font-weight-bolder"
           >
             <span v-if="isComputer">You</span> <span v-else>Player X</span>:
             <span class="font-weight-bold">{{ playerXPoints }}</span>
           </h5>
-          <h3 class="p-2 rounded-pill d-block mx-3 font-weight-bold text-black">
+          <h3 class="p-2 rounded-pill d-block mx-3 font-weight-bold text-warning">
             <span v-if="isComputer">Round : </span>
             <span class="font-weight-bold">{{ round }}</span>
           </h3>
@@ -252,7 +252,7 @@ h1 {
 }
 
 .alert {
-  padding: 4px !important;
+  padding: 6px !important;
 }
 
 .square {
@@ -284,7 +284,7 @@ h1 {
 input {
   cursor: pointer;
 }
-h5,h4 {
+h5,h4,h3 {
   font-family: "Kanit", sans-serif;
 }
 </style>
