@@ -1,9 +1,11 @@
 <template>
+  <div class="bg">
   <div id="nav">
     <router-link to="/">Home</router-link> |
     <router-link to="/about">About</router-link>
   </div>
   <router-view />
+  </div>
 </template>
 
 <style>
@@ -17,6 +19,25 @@
 
 #nav {
   padding: 10px;
+}
+.bg {
+  width: 100%;
+  height: 100vh;
+  display: block;
+  position: relative;
+}
+
+.bg::after {
+  content: "";
+  background: url('assets/bg.jpg');
+  opacity: 0.1;
+  filter:blur(30px);
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  position: absolute;
+  z-index: -1;   
 }
 
 #nav a {

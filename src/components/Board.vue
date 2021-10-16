@@ -1,5 +1,25 @@
 <template>
-  <div class="container">
+<div class="container">
+  <header>
+      <h1 class="my-2">
+        <img src="../assets/logo.png" lazy alt="Logo" width="40" /> Tic Tac Toe
+    <div class="form-check form-switch d-inline-block" style="font-size: 20px;" v-show="!gameStart">
+      <input
+        class="form-check-input"
+        type="checkbox"
+        role="switch"
+        v-model="isRow"
+      />
+    </div>
+
+      </h1>
+  </header>
+
+  <div :class="[isRow?'row':'text-center']">
+
+  <!-- !Controls and Message Section -->
+  <section :class="[isRow?'col-md-6 col-sm-12':'']">
+      <!-- Computer Switch -->
     <div class="form-check form-switch switch" v-show="!gameStart">
       <input
         class="form-check-input"
@@ -10,38 +30,29 @@
         :disabled="gameStart"
       />
       <label class="form-check-label mx-2" for="flexSwitchCheckDefault"
-        >Computer</label
-      >
+        >Computer</label>
     </div>
 
-    <!-- <transition-group
+
+    <transition-group
     name="custom-classes-transition"
     enter-active-class="animated bounceIn"
     leave-active-class="animated bounceOut"
-  > -->
+  >
+    <h1 class="text-muted" v-if="gameStart">Round : {{round}}</h1>
 
-    <div
-      v-if="gameStart&&isComputer"
-      style="
+
+      <h4 v-if="gameStart&&isComputer" style="
         border: 2px solid skyblue;
-        border-radius: 20px;
-        padding: 10px 15px !important;
-      "
-      class="alert d-inline-block"
-    >
-      <h4  class="font-weight-bold text-black">
+      " class="alert font-weight-bold text-black d-inline-block">
         <span>
           <i class="fa fa-desktop text-primary"></i> Computer in
           <i class="fa fa-dashboard text-black mx-1"></i>
              <strong class="text-decoration-underline">   {{ level }} </strong> mode
         </span>
       </h4>
-    </div>
-
-    <h1 class="my-2" v-if="!winner">
-      <img src="../assets/logo.png" lazy alt="Logo" width="40" /> Tic Tac Toe
-    </h1>
-
+    </transition-group>
+    
     <div
       v-if="!gameStart && isComputer"
       class="d-flex justify-content-around my-2"
@@ -64,10 +75,12 @@
 
     <h4
       class="p-2 alert-warning d-inline-block rounded-2"
-      v-if="!isComputer && !winner"
+      v-if="!isComputer"
     >
       Player Move : "{{ player }}"
     </h4>
+ <!-- </transition-group> -->
+
     <h1 v-if="winner == 'draw'" :style="!isComputer?{fontSize: '50px'}:{}" class="alert alert-warning">Its A Draw!</h1>
     <h1
       class="text-center mx-2 alert alert-success"
@@ -84,8 +97,13 @@
         Wins!
       </span>
     </h1>
-    <!-- <h1 v-if="!winner"></h1> -->
 
+    </section>
+
+    <!-- !Game Board Section -->
+  <section :class="[isRow?'col-md-6 col-sm-12':'']">
+
+  <!-- !Main Game Board -->
     <div class="board d-block margin-auto">
       <div class="line"></div>
       <div v-for="(row, x) in squares" :key="x" class="row">
@@ -99,8 +117,17 @@
         </div>
       </div>
     </div>
-    <div>
-      <div class="d-flex justify-content-around">
+    </section>
+ <!-- <transition-group
+    name="custom-classes-transition"
+    enter-active-class="animated bounceIn"
+    leave-active-class="animated bounceOut"
+  > -->
+  </div>
+    <!-- </transition-group> -->
+
+
+      <section class="d-flex justify-content-around">
         <div
           style="border-radius: 16px"
           class="btn btn-block btn-outline-danger my-2 ml-2"
@@ -116,9 +143,9 @@
         >
           Next Round <i class="fa fa-arrow-right"></i>
         </div>
-      </div>
-    </div>
-    <div class="mt-3 gameStatus">
+      </section>
+    <!-- !Game Status - Points, Round -->
+    <footer class="mt-3 gameStatus" >
       <div class="d-flex justify-content-around">
         <h5 class="p-2 rounded-pill text-primary font-weight-bolder">
           <span v-if="isComputer"><i class="fa fa-user"></i> You</span>
@@ -137,8 +164,8 @@
           <span class="font-weight-bold">{{ playerOPoints }}</span>
         </h5>
       </div>
-    </div>
-    <!-- </transition-group> -->
+    </footer>
+
   </div>
 </template>
 
@@ -175,6 +202,15 @@ export default {
       playerXPoints: 0,
       playerOPoints: 0,
       round: 1,
+      isRow: true,
+      playFont: computed(()=> {
+        if (utils.isRow) return "75px"
+        else return "75px"
+      }),
+      squareSize: computed(()=> {
+        if(utils.isRow) return "120px"
+        else return "100px"
+      }),
     });
 
     const winConditions = [
@@ -343,7 +379,7 @@ export default {
 <style>
 @import url("https://fonts.googleapis.com/css2?family=Kanit:wght@500&family=Varela+Round&display=swap");
 .board {
-  max-width: 300px;
+  max-width: fit-content;
   display: block;
   margin: auto;
 }
@@ -357,17 +393,20 @@ h1 {
 
 .alert {
   padding: 8px !important;
+  border-radius: 30px!important;
 }
 
 .square {
   color: black;
-  width: 100px;
-  height: 100px;
+  width: v-bind(squareSize);
+  height: v-bind(squareSize);
   border: 2px dashed black;
+  border-radius: 2px;
   display: inline-block;
   margin: 0px;
   padding: 0px;
-  font-size: 68px;
+  font-size: v-bind(playFont);
+  text-align: center;
   cursor: pointer;
   background: v-bind(color);
   font-family: "Varela Round", sans-serif;
@@ -396,5 +435,21 @@ h3 {
 
 .gameStatus {
   font-size: 30px !important;
+}
+footer {
+  border: 2px solid rgb(150, 144, 144);
+  border-radius: 30px;
+}
+
+@media screen and (max-width: 766px) {
+  #toggle{
+    display: none;
+  }  
+}
+@media screen and (max-width: 370px) {
+  .square {
+    width: 70px!important;
+    height: 70px!important;
+  }
 }
 </style>
