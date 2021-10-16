@@ -1,93 +1,103 @@
 <template>
-    <div class="container">
-      <div class="form-check form-switch switch">
-        <input
-          class="form-check-input"
-          type="checkbox"
-          role="switch"
-          id="flexSwitchCheckDefault"
-          v-model="isComputer"
-          :disabled="usedBoxes > 0"
-        />
-        <label class="form-check-label mx-2" for="flexSwitchCheckDefault"
-          >Computer</label
-        >
-      </div>
+  <div class="container">
+    <div class="form-check form-switch switch">
+      <input
+        class="form-check-input"
+        type="checkbox"
+        role="switch"
+        id="flexSwitchCheckDefault"
+        v-model="isComputer"
+        :disabled="usedBoxes > 0"
+      />
+      <label class="form-check-label mx-2" for="flexSwitchCheckDefault"
+        >Computer</label
+      >
+    </div>
 
-  <!-- <transition-group
+    <!-- <transition-group
     name="custom-classes-transition"
     enter-active-class="animated bounceIn"
     leave-active-class="animated bounceOut"
   > -->
-      <h1 class="my-2" v-if="!winner">
-        <img src="../assets/logo.png" lazy alt="Logo" width="40" /> Tic Tac Toe
-      </h1>
+    <h1 class="my-2" v-if="!winner">
+      <img src="../assets/logo.png" lazy alt="Logo" width="40" /> Tic Tac Toe
+    </h1>
 
-      <h4
-        class="p-2 alert-warning d-inline-block rounded-2"
-        v-if="!isComputer && !winner"
-      >
-        Player Move : "{{ player }}"
-      </h4>
-      <h1 v-if="winner == 'draw'" class="alert alert-warning">Its A Draw!</h1>
-      <h1
-        class="text-center mx-2 alert alert-success"
-        :class="[
-          isComputer && winner === 'O' ? 'alert-danger' : 'alert success',
-        ]"
-        v-if="winner != 'draw' && winner"
-      >
-        <span v-if="!isComputer">
-          <span v-if="winner != 'draw'"> Player {{ winner }} wins! </span>
-        </span>
-        <span v-else>
-          <strong v-if="winner == 'X'">You</strong>
-          <strong v-else>Computer</strong>
-          Wins!
-        </span>
-      </h1>
-      <!-- <h1 v-if="!winner"></h1> -->
+    <h4
+      class="p-2 alert-warning d-inline-block rounded-2"
+      v-if="!isComputer && !winner"
+    >
+      Player Move : "{{ player }}"
+    </h4>
+    <h1 v-if="winner == 'draw'" class="alert alert-warning">Its A Draw!</h1>
+    <h1
+      class="text-center mx-2 alert alert-success"
+      :class="[isComputer && winner === 'O' ? 'alert-danger' : 'alert success']"
+      v-if="winner != 'draw' && winner"
+    >
+      <span v-if="!isComputer">
+        <span v-if="winner != 'draw'"> Player {{ winner }} wins! </span>
+      </span>
+      <span v-else>
+        <strong v-if="winner == 'X'">You</strong>
+        <strong v-else>Computer</strong>
+        Wins!
+      </span>
+    </h1>
+    <!-- <h1 v-if="!winner"></h1> -->
 
-      <div class="board d-block margin-auto">
-        <div v-for="(row, x) in squares" :key="x" class="row">
-          <div
-            v-for="(square, y) in row"
-            :key="y"
-            @click="move(x, y)"
-            class="col square"
-          >
-            {{ square }}
-          </div>
+    <div class="board d-block margin-auto">
+      <div class="line"></div>
+      <div v-for="(row, x) in squares" :key="x" class="row">
+        <div
+          v-for="(square, y) in row"
+          :key="y"
+          @click="move(x, y)"
+          class="col square"
+        >
+          {{ square }}
         </div>
       </div>
-
-      <div class="d-block mx-auto">
-        <div class="btn btn-block btn-outline-danger my-2" @click="reset">
-          Reset
-        </div>
-      </div>
-
-      <footer class="mt-3">
-        <div class="d-flex justify-content-around">
-          <h5 class="p-2 rounded-pill text-primary font-weight-bolder">
-            <span v-if="isComputer">You</span> <span v-else>Player X</span>:
-            <span class="font-weight-bold">{{ playerXPoints }}</span>
-          </h5>
-          <h5
-            class="p-2 rounded-pill d-block font-weight-bold text-warning"
-          >
-            <span>Round : </span>
-            <span class="font-weight-bold">{{ round }}</span>
-          </h5>
-          <h5 class="p-2 rounded-pill text-danger">
-            <span v-if="isComputer">Computer</span>
-            <span v-else>Player Y</span> :
-            <span class="font-weight-bold">{{ playerOPoints }}</span>
-          </h5>
-        </div>
-      </footer>
-  <!-- </transition-group> -->
     </div>
+    <div>
+      <div class="d-flex justify-content-around">
+        <div
+          style="border-radius: 16px"
+          class="btn btn-block btn-outline-danger my-2 ml-2"
+          @click="restart"
+        >
+          Restart <i class="fa fa-refresh"></i>
+        </div>
+
+        <div
+          style="border-radius: 16px"
+          class="btn btn-block btn-outline-success my-2"
+          @click="next"
+        >
+          Next Round <i class="fa fa-arrow-right"></i>
+        </div>
+      </div>
+    </div>
+    <div class="mt-3 gameStatus">
+      <div class="d-flex justify-content-around">
+        <h5 class="p-2 rounded-pill text-primary font-weight-bolder">
+          <span v-if="isComputer"><i class="fa fa-user"></i> You</span>
+           <span v-else><i class="fa fa-user-circle"></i> Player X</span>:
+          <span class="font-weight-bold">{{ playerXPoints }}</span>
+        </h5>
+        <h5 class="p-2 rounded-pill d-block font-weight-bold text-black">
+          <span><i class="fa fa-gamepad"></i> Round : </span>
+          <span class="font-weight-bold" style="font-weight: bold;">{{ round }}</span>
+        </h5>
+        <h5 class="p-2 rounded-pill text-danger">
+          <span v-if="isComputer"><i class="fa fa-desktop"></i> Computer</span>
+          <span v-else><i class="fa fa-user-circle"></i> Player Y</span> :
+          <span class="font-weight-bold">{{ playerOPoints }}</span>
+        </h5>
+      </div>
+    </div>
+    <!-- </transition-group> -->
+  </div>
 </template>
 
 <script>
@@ -193,7 +203,6 @@ export default {
         } else if (winner === "O") {
           utils.playerOPoints = utils.playerOPoints + 1;
         }
-        utils.round = utils.round + 1;
       }
     };
 
@@ -207,13 +216,32 @@ export default {
       return win;
     });
 
-    const reset = () => {
-      utils.player = "X";
-      squares.value = [
-        ["", "", ""],
-        ["", "", ""],
-        ["", "", ""],
-      ];
+    const restart = () => {
+      if (confirm("Do you really want to restart the game?")) {
+        utils.player = "X";
+        utils.playerXPoints = 0;
+        utils.playerOPoints = 0;
+        utils.round = 1;
+        squares.value = [
+          ["", "", ""],
+          ["", "", ""],
+          ["", "", ""],
+        ];
+      }
+    };
+
+    const next = () => {
+      if (winner.value) {
+        utils.player = "X";
+        squares.value = [
+          ["", "", ""],
+          ["", "", ""],
+          ["", "", ""],
+        ];
+        utils.round += 1
+      } else {
+        alert("Can't go to next round until finis current round.");
+      }
     };
 
     //* find winner along with the winConditions
@@ -233,7 +261,8 @@ export default {
       move,
       squares,
       winner,
-      reset,
+      next,
+      restart,
     };
   },
 };
@@ -246,7 +275,7 @@ export default {
   display: block;
   margin: auto;
 }
-:root{
+:root {
   animation-duration: 1s;
 }
 h1 {
@@ -291,5 +320,9 @@ h5,
 h4,
 h3 {
   font-family: "Kanit", sans-serif;
+}
+
+.gameStatus {
+  font-size: 30px!important;
 }
 </style>
