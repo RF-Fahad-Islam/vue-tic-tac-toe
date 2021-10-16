@@ -1,13 +1,13 @@
 <template>
   <div class="container">
-    <div class="form-check form-switch switch">
+    <div class="form-check form-switch switch" v-show="!gameStart">
       <input
         class="form-check-input"
         type="checkbox"
         role="switch"
         id="flexSwitchCheckDefault"
         v-model="isComputer"
-        :disabled="usedBoxes > 0"
+        :disabled="gameStart"
       />
       <label class="form-check-label mx-2" for="flexSwitchCheckDefault"
         >Computer</label
@@ -19,9 +19,48 @@
     enter-active-class="animated bounceIn"
     leave-active-class="animated bounceOut"
   > -->
+
+    <div
+      v-if="gameStart&&isComputer"
+      style="
+        border: 2px solid skyblue;
+        border-radius: 20px;
+        padding: 10px 15px !important;
+      "
+      class="alert d-inline-block"
+    >
+      <h4  class="font-weight-bold text-black">
+        <span>
+          <i class="fa fa-desktop text-primary"></i> Computer in
+          <i class="fa fa-dashboard text-black mx-1"></i>
+             <strong class="text-decoration-underline">   {{ level }} </strong> mode
+        </span>
+      </h4>
+    </div>
+
     <h1 class="my-2" v-if="!winner">
       <img src="../assets/logo.png" lazy alt="Logo" width="40" /> Tic Tac Toe
     </h1>
+
+    <div
+      v-if="!gameStart && isComputer"
+      class="d-flex justify-content-around my-2"
+    >
+      <select
+        name="level"
+        v-model="level"
+        id="level"
+        class="form-select"
+        style="width: 300px"
+        :disabled="usedBoxes > 0"
+      >
+        <option value="hard" default>Choose Difficulty Level (Default Hard)</option>
+        <option value="noob">Noob</option>
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+      </select>
+    </div>
 
     <h4
       class="p-2 alert-warning d-inline-block rounded-2"
@@ -29,16 +68,17 @@
     >
       Player Move : "{{ player }}"
     </h4>
-    <h1 v-if="winner == 'draw'" class="alert alert-warning">Its A Draw!</h1>
+    <h1 v-if="winner == 'draw'" :style="!isComputer?{fontSize: '50px'}:{}" class="alert alert-warning">Its A Draw!</h1>
     <h1
       class="text-center mx-2 alert alert-success"
       :class="[isComputer && winner === 'O' ? 'alert-danger' : 'alert success']"
       v-if="winner != 'draw' && winner"
     >
       <span v-if="!isComputer">
-        <span v-if="winner != 'draw'"> Player {{ winner }} wins! </span>
+        <span v-if="winner != 'draw'" style="font-size: 50px;"> Player {{ winner }} wins! </span>
       </span>
-      <span v-else>
+      <span v-else
+        >🎉
         <strong v-if="winner == 'X'">You</strong>
         <strong v-else>Computer</strong>
         Wins!
@@ -82,12 +122,14 @@
       <div class="d-flex justify-content-around">
         <h5 class="p-2 rounded-pill text-primary font-weight-bolder">
           <span v-if="isComputer"><i class="fa fa-user"></i> You</span>
-           <span v-else><i class="fa fa-user-circle"></i> Player X</span>:
+          <span v-else><i class="fa fa-user-circle"></i> Player X</span>:
           <span class="font-weight-bold">{{ playerXPoints }}</span>
         </h5>
         <h5 class="p-2 rounded-pill d-block font-weight-bold text-black">
           <span><i class="fa fa-gamepad"></i> Round : </span>
-          <span class="font-weight-bold" style="font-weight: bold;">{{ round }}</span>
+          <span class="font-weight-bold" style="font-weight: bold">{{
+            round
+          }}</span>
         </h5>
         <h5 class="p-2 rounded-pill text-danger">
           <span v-if="isComputer"><i class="fa fa-desktop"></i> Computer</span>
@@ -119,12 +161,16 @@ export default {
       color: computed(() => {
         return utils.gameEnd ? "#eee" : "white";
       }),
+      level: "hard",
       isComputer: true,
       usedBoxes: computed(() => {
         return squares.value.flat().filter((x) => x !== "").length;
       }),
       leftBoxes: computed(() => {
         return squares.value.flat().filter((x) => x === "").length;
+      }),
+      gameStart: computed(()=> {
+        return utils.usedBoxes>0||utils.round>1
       }),
       playerXPoints: 0,
       playerOPoints: 0,
@@ -165,36 +211,62 @@ export default {
       utils.player = utils.player === "X" ? "O" : "X";
     };
 
-    const smartChoice = (square) => {
-      //? Making the computer understand the action based on the positions and user actions
+    //Player is X or O and square is squares.value.flat()
+    const findWinChances = (square, player)=> {
       for (let conditions of winConditions) {
-        const [a, b, c] = conditions;
-        if (square[a] === "" && square[b] === "X" && square[c] === "X") {
-          return a;
-        } else if (square[b] === "" && square[a] === "X" && square[c] === "X") {
-          return b;
-        } else if (square[c] === "" && square[a] === "X" && square[b] === "X") {
-          return c;
+          const [a, b, c] = conditions;
+          if (square[a] === "" && square[b] === player && square[c] === player) return a;
+          else if (square[b] === "" && square[a] === player && square[c] === player) return b;
+          else if (square[c] === "" && square[a] === player && square[b] === player) return c;
         }
-      }
-      return null;
+          return null
+    }
+
+    const smartChoice = (square, level) => {
+      //? Making the computer understand the action based on the positions and user actions
+        let returnPosition;
+        //! Level Hard
+        if(level==="hard"){
+          //* Priotorize computer's win possibilities
+          returnPosition = findWinChances(square, "O")
+          //*If there is no chances for computer then find the user win possibilites and prevent from winning
+          if(returnPosition == null) returnPosition = findWinChances(square, "X")
+        }
+        
+        //! Level Medium
+        else if (level==="medium") {
+          //* Prevent the user from winning
+          returnPosition = findWinChances(square, "X")
+        }
+        else if (level==="easy") {
+          //* Only focuses on computer win. Don't prevent user from winning
+          returnPosition = findWinChances(square, "O")
+        }
+        else if (level==="noob"){
+          //* Randomly Make all Choices
+          returnPosition = null
+        }
+        return returnPosition
     };
 
     const computerChoice = (square) => {
       let choice;
-      choice = smartChoice(square);
+      choice = smartChoice(square, utils.level);
       if (choice === null) {
         do {
           choice = Math.floor(Math.random() * 9); //Random number between 0-8
         } while (square[choice] !== "");
       }
       square[choice] = utils.player;
-      const newSquares = [];
-      while (square.length) newSquares.push(square.splice(0, 3));
-      console.log({ newSquares });
       playerSwap(); //!Swap the player to 'X' again
-      return newSquares;
+      return array1dTo2d(square)
     };
+
+    const array1dTo2d = (array)=> {
+      const newArray = [];
+      while (array.length) newArray.push(array.splice(0, 3));
+      return newArray;
+    }
 
     const updatePlayerPoints = (winner) => {
       if (winner) {
@@ -238,7 +310,7 @@ export default {
           ["", "", ""],
           ["", "", ""],
         ];
-        utils.round += 1
+        utils.round += 1;
       } else {
         alert("Can't go to next round until finis current round.");
       }
@@ -284,7 +356,7 @@ h1 {
 }
 
 .alert {
-  padding: 6px !important;
+  padding: 8px !important;
 }
 
 .square {
@@ -323,6 +395,6 @@ h3 {
 }
 
 .gameStatus {
-  font-size: 30px!important;
+  font-size: 30px !important;
 }
 </style>
