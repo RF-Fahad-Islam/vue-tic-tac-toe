@@ -3,7 +3,7 @@
   <header>
       <h1 class="my-2">
         <img src="../assets/logo.png" lazy alt="Logo" width="40" /> Tic Tac Toe
-    <div class="form-check form-switch d-inline-block" style="font-size: 20px;" v-show="!gameStart">
+    <div class="form-check form-switch d-inline-block" id="toggle" style="font-size: 20px;" v-show="!gameStart">
       <input
         class="form-check-input"
         type="checkbox"
@@ -38,6 +38,7 @@
     name="custom-classes-transition"
     enter-active-class="animated bounceIn"
     leave-active-class="animated bounceOut"
+    tag="ul"
   >
     <h1 class="text-muted" v-if="gameStart">Round : {{round}}</h1>
 
@@ -55,14 +56,13 @@
     
     <div
       v-if="!gameStart && isComputer"
-      class="d-flex justify-content-around my-2"
+      class="d-flex justify-content-center my-2"
     >
       <select
         name="level"
         v-model="level"
         id="level"
         class="form-select"
-        style="width: 300px"
         :disabled="usedBoxes > 0"
       >
         <option value="hard" default>Choose Difficulty Level (Default Hard)</option>
@@ -105,24 +105,26 @@
 
   <!-- !Main Game Board -->
     <div class="board d-block margin-auto">
-      <div class="line"></div>
       <div v-for="(row, x) in squares" :key="x" class="row">
+
         <div
           v-for="(square, y) in row"
           :key="y"
           @click="move(x, y)"
           class="col square"
+          :class="[winBoxes[x][y]==='win'?'winBox':'', squareClasses[x][y]]"
         >
+    <transition
+    name="custom-classes-transition-{{x}}-{{y}}"
+    enter-active-class="animated bounceIn"
+    leave-active-class="animated bounceOut">
           {{ square }}
+    </transition>
         </div>
       </div>
     </div>
     </section>
- <!-- <transition-group
-    name="custom-classes-transition"
-    enter-active-class="animated bounceIn"
-    leave-active-class="animated bounceOut"
-  > -->
+ 
   </div>
     <!-- </transition-group> -->
 
@@ -152,12 +154,12 @@
           <span v-else><i class="fa fa-user-circle"></i> Player X</span>:
           <span class="font-weight-bold">{{ playerXPoints }}</span>
         </h5>
-        <h5 class="p-2 rounded-pill d-block font-weight-bold text-black">
+        <!-- <h5 class="p-2 rounded-pill d-block font-weight-bold text-black">
           <span><i class="fa fa-gamepad"></i> Round : </span>
           <span class="font-weight-bold" style="font-weight: bold">{{
             round
           }}</span>
-        </h5>
+        </h5> -->
         <h5 class="p-2 rounded-pill text-danger">
           <span v-if="isComputer"><i class="fa fa-desktop"></i> Computer</span>
           <span v-else><i class="fa fa-user-circle"></i> Player Y</span> :
@@ -170,10 +172,13 @@
 </template>
 
 <script>
-import { reactive, toRefs, ref, computed } from "vue";
+import { reactive, toRefs, ref, computed} from "vue";
 export default {
   name: "Board",
   setup() {
+
+    //* Initialize all sounds for the game
+ 
     const squares = ref([
       ["", "", ""],
       ["", "", ""],
@@ -186,7 +191,7 @@ export default {
         return Boolean(winner.value);
       }),
       color: computed(() => {
-        return utils.gameEnd ? "#eee" : "white";
+        return utils.gameEnd ? "rgb(233,233,233)" : "none";
       }),
       level: "hard",
       isComputer: true,
@@ -211,6 +216,18 @@ export default {
         if(utils.isRow) return "120px"
         else return "100px"
       }),
+      winBoxes : [
+        ["","",""],
+        ["","",""],
+        ["","",""]
+      ],
+      conditionThatMatched : "",  
+      //Classes for squares
+      squareClasses: [
+        ["top left","top middle","top right"],
+        ["left", "middle","right"],
+        ["bottom left","bottom middle","bottom right"]
+      ],
     });
 
     const winConditions = [
@@ -227,39 +244,78 @@ export default {
       [2, 4, 6],
     ];
 
+     const winner = computed(() => {
+      const win = findWinner(squares.value.flat());
+      if (!win && utils.usedBoxes === 9) {
+        updatePlayerPoints("draw");
+        return "draw";
+      }
+      if(win==="X"||win==="O") updateWinBoxes(utils.winBoxes.flat())
+      updatePlayerPoints(win);
+      return win;
+
+    });
+    
+    //* For marking the boxes which matches the win conditions
+    //* Take utils.winBoxes.flat() as argument
+    const updateWinBoxes = (winBoxesFlat)=> {
+      utils.conditionThatMatched.forEach((c)=> {
+        winBoxesFlat[c] = "win"
+      })
+      utils.conditionThatMatched = "" //Empty the conditions
+      utils.winBoxes = array1dTo2d(winBoxesFlat)
+    }
+    
     const move = (x, y) => {
       if (squares.value[x][y] === "" && !utils.gameEnd) {
         squares.value[x][y] = utils.player;
+      // playSounds("move")
         playerSwap(); //!Swap the player to "O"
-        if (utils.isComputer) handleNextPlayer(); //!Running Computer Move
+        if (utils.isComputer&&!winner.value) executeComputer(); //!Running Computer Move
       }
     };
 
-    const handleNextPlayer = () => {
+    const executeComputer = () => {
       if (utils.player === "O" && utils.usedBoxes < 9) {
         const newSquares = computerChoice(squares.value.flat());
         squares.value = newSquares;
+        // playSounds("move")
       }
     };
 
-    //Swap player between 'X' and 'O'
+    //* Swap player between 'X' and 'O'
     const playerSwap = () => {
       utils.player = utils.player === "X" ? "O" : "X";
     };
 
-    //Player is X or O and square is squares.value.flat()
+     //* Generating Computer choice
+     //! Dealing with flat array of 2D squares array
+    const computerChoice = (square) => {
+      let choice;
+      choice = smartChoice(square, utils.level);
+      if (choice === null) {
+        do {
+          choice = Math.floor(Math.random() * 9); //Random number between 0-8
+        } while (square[choice] !== "");
+      }
+      square[choice] = utils.player;
+      playerSwap(); //!Swap the player to 'X' again
+      return array1dTo2d(square)
+    };
+
+    //* Player is X or O and square is squares.value.flat()
     const findWinChances = (square, player)=> {
       for (let conditions of winConditions) {
           const [a, b, c] = conditions;
           if (square[a] === "" && square[b] === player && square[c] === player) return a;
           else if (square[b] === "" && square[a] === player && square[c] === player) return b;
           else if (square[c] === "" && square[a] === player && square[b] === player) return c;
-        }
+      }
           return null
     }
 
+    //? Making the computer understand the action based on the positions and user actions
     const smartChoice = (square, level) => {
-      //? Making the computer understand the action based on the positions and user actions
         let returnPosition;
         //! Level Hard
         if(level==="hard"){
@@ -285,25 +341,14 @@ export default {
         return returnPosition
     };
 
-    const computerChoice = (square) => {
-      let choice;
-      choice = smartChoice(square, utils.level);
-      if (choice === null) {
-        do {
-          choice = Math.floor(Math.random() * 9); //Random number between 0-8
-        } while (square[choice] !== "");
-      }
-      square[choice] = utils.player;
-      playerSwap(); //!Swap the player to 'X' again
-      return array1dTo2d(square)
-    };
-
+    //* For converting squares flat array to 2D again
     const array1dTo2d = (array)=> {
       const newArray = [];
       while (array.length) newArray.push(array.splice(0, 3));
       return newArray;
     }
 
+    //* Update the points
     const updatePlayerPoints = (winner) => {
       if (winner) {
         if (winner === "X") {
@@ -314,15 +359,18 @@ export default {
       }
     };
 
-    const winner = computed(() => {
-      const win = findWinner(squares.value.flat());
-      if (!win && utils.usedBoxes === 9) {
-        updatePlayerPoints("draw");
-        return "draw";
+    //* find winner along with the winConditions
+    //* Returns the winner 'X' or 'O'
+    const findWinner = (square) => {
+      for (const conditions of winConditions) {
+        const [a, b, c] = conditions;
+        if (square[a] && square[a] === square[b] && square[a] === square[c]) {
+          utils.conditionThatMatched = [a,b,c] //For accessing the boxes
+          return square[a]; // Returns player that matches all conditions
+        }
       }
-      updatePlayerPoints(win);
-      return win;
-    });
+      return "";
+    };
 
     const restart = () => {
       if (confirm("Do you really want to restart the game?")) {
@@ -335,6 +383,11 @@ export default {
           ["", "", ""],
           ["", "", ""],
         ];
+      utils.winBoxes = [
+        ["", "", ""],
+        ["", "", ""],
+        ["", "", ""],
+      ]
       }
     };
 
@@ -346,24 +399,18 @@ export default {
           ["", "", ""],
           ["", "", ""],
         ];
+        utils.winBoxes = [
+          ["", "", ""],
+          ["", "", ""],
+          ["", "", ""],
+        ]
         utils.round += 1;
       } else {
         alert("Can't go to next round until finis current round.");
       }
     };
 
-    //* find winner along with the winConditions
-    //* Returns the winner 'X' or 'O'
-    const findWinner = (square) => {
-      for (const conditions of winConditions) {
-        const [a, b, c] = conditions;
-        if (square[a] && square[a] === square[b] && square[a] === square[c]) {
-          return square[a]; // Returns player that matches all conditions
-        }
-      }
-      return "";
-    };
-
+ 
     return {
       ...toRefs(utils),
       move,
@@ -400,7 +447,7 @@ h1 {
   color: black;
   width: v-bind(squareSize);
   height: v-bind(squareSize);
-  border: 2px dashed black;
+  border: 2px solid black;
   border-radius: 2px;
   display: inline-block;
   margin: 0px;
@@ -412,8 +459,14 @@ h1 {
   font-family: "Varela Round", sans-serif;
 }
 .square:hover {
-  background: #eee;
+  background: rgb(233,233,233);
 }
+
+.winBox {
+  color: red!important;
+  background: rgb(255, 255, 255)!important;
+}
+
 .activeBox {
   background: skyblue;
 }
@@ -437,8 +490,33 @@ h3 {
   font-size: 30px !important;
 }
 footer {
-  border: 2px solid rgb(150, 144, 144);
+  border: 2px solid rgb(68, 68, 68);
   border-radius: 30px;
+}
+
+#level{
+  width: 330px;
+}
+
+/* Squares Classes */
+.top{
+  border-top: none!important;
+}
+
+.bottom{
+  border-bottom: none!important;
+}
+
+.left{
+  border-left: none!important;
+}
+
+.middle{
+  color: black;
+}
+
+.right{
+  border-right: none!important;;
 }
 
 @media screen and (max-width: 766px) {
@@ -448,8 +526,12 @@ footer {
 }
 @media screen and (max-width: 370px) {
   .square {
-    width: 70px!important;
-    height: 70px!important;
+    width: 90px!important;
+    height: 90px!important;
+    font-size: 60px!important;
+  }
+  #level {
+    width: 250px;
   }
 }
 </style>

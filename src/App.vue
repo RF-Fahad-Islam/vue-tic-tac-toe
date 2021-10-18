@@ -20,18 +20,18 @@
 #nav {
   padding: 10px;
 }
-.bg {
+#app {
   width: 100%;
   height: 100vh;
   display: block;
   position: relative;
 }
 
-.bg::after {
+#app::after {
   content: "";
   background: url('assets/bg.jpg');
-  opacity: 0.1;
-  filter:blur(30px);
+  opacity: 0.2;
+  filter:blur(20px);
   top: 0;
   left: 0;
   bottom: 0;
