@@ -1,5 +1,9 @@
 <template>
 <div class="container">
+    <!-- <span  style="cursor: pointer; font-size: 35px; position: absolute; left: 20px;" class="float-start" @click="isMuted = !isMuted">
+    <i class="fa fa-volume-up" v-if="!isMuted"></i>
+    <i class="fa fa-volume-off" v-else></i>
+    </span> -->
   <header>
       <h1 class="my-2">
         <img src="../assets/logo.png" lazy alt="Logo" width="40" /> Tic Tac Toe
@@ -40,7 +44,7 @@
     leave-active-class="animated bounceOut"
     tag="ul"
   >
-    <h1 class="text-muted" v-if="gameStart">Round : {{round}}</h1>
+    <h1 class="text-black" v-if="gameStart">Round : {{round}}</h1>
 
 
       <h4 v-if="gameStart&&isComputer" style="
@@ -88,7 +92,7 @@
       v-if="winner != 'draw' && winner"
     >
       <span v-if="!isComputer">
-        <span v-if="winner != 'draw'" style="font-size: 50px;"> Player {{ winner }} wins! </span>
+        <strong v-if="winner != 'draw'">🎉 Player {{ winner }} wins! </strong>
       </span>
       <span v-else
         >🎉
@@ -148,8 +152,8 @@
       </section>
     <!-- !Game Status - Points, Round -->
     <footer class="mt-3 gameStatus" >
-      <div class="d-flex justify-content-around">
-        <h5 class="p-2 rounded-pill text-primary font-weight-bolder">
+      <div class="d-flex p-1 flex-wrap justify-content-around">
+        <h5 class="rounded-pill text-primary font-weight-bolder">
           <span v-if="isComputer"><i class="fa fa-user"></i> You</span>
           <span v-else><i class="fa fa-user-circle"></i> Player X</span>:
           <span class="font-weight-bold">{{ playerXPoints }}</span>
@@ -160,7 +164,7 @@
             round
           }}</span>
         </h5> -->
-        <h5 class="p-2 rounded-pill text-danger">
+        <h5 class="rounded-pill text-danger">
           <span v-if="isComputer"><i class="fa fa-desktop"></i> Computer</span>
           <span v-else><i class="fa fa-user-circle"></i> Player Y</span> :
           <span class="font-weight-bold">{{ playerOPoints }}</span>
@@ -176,8 +180,8 @@ import { reactive, toRefs, ref, computed} from "vue";
 export default {
   name: "Board",
   setup() {
-
     //* Initialize all sounds for the game
+    const audio = new Audio("musics/ting.mp3");
  
     const squares = ref([
       ["", "", ""],
@@ -228,6 +232,12 @@ export default {
         ["left", "middle","right"],
         ["bottom left","bottom middle","bottom right"]
       ],
+      soundsPath: "musics",
+      //Marking color to mark the win conditions used in css
+      markingColor: computed(()=> {
+          return "#ff0111" //Red
+      }),
+      isMuted: false,
     });
 
     const winConditions = [
@@ -244,6 +254,13 @@ export default {
       [2, 4, 6],
     ];
 
+    //Play Sound Method
+    const playSounds = async (action) => {
+      if(action==="move"){
+        audio.play();
+      }
+    }
+
      const winner = computed(() => {
       const win = findWinner(squares.value.flat());
       if (!win && utils.usedBoxes === 9) {
@@ -251,11 +268,12 @@ export default {
         return "draw";
       }
       if(win==="X"||win==="O") updateWinBoxes(utils.winBoxes.flat())
+      if(win) playSounds("move")
       updatePlayerPoints(win);
       return win;
 
     });
-    
+
     //* For marking the boxes which matches the win conditions
     //* Take utils.winBoxes.flat() as argument
     const updateWinBoxes = (winBoxesFlat)=> {
@@ -269,7 +287,6 @@ export default {
     const move = (x, y) => {
       if (squares.value[x][y] === "" && !utils.gameEnd) {
         squares.value[x][y] = utils.player;
-      // playSounds("move")
         playerSwap(); //!Swap the player to "O"
         if (utils.isComputer&&!winner.value) executeComputer(); //!Running Computer Move
       }
@@ -463,7 +480,7 @@ h1 {
 }
 
 .winBox {
-  color: red!important;
+  color: v-bind(markingColor);
   background: rgb(255, 255, 255)!important;
 }
 
@@ -490,7 +507,7 @@ h3 {
   font-size: 30px !important;
 }
 footer {
-  border: 2px solid rgb(68, 68, 68);
+  border: 2px dashed rgb(68, 68, 68);
   border-radius: 30px;
 }
 
@@ -509,10 +526,6 @@ footer {
 
 .left{
   border-left: none!important;
-}
-
-.middle{
-  color: black;
 }
 
 .right{

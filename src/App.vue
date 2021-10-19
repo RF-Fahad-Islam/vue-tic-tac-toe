@@ -31,7 +31,7 @@
   content: "";
   background: url('assets/bg.jpg');
   opacity: 0.2;
-  filter:blur(20px);
+  filter:blur(100px);
   top: 0;
   left: 0;
   bottom: 0;
