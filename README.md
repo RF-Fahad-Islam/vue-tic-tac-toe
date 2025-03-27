@@ -1,6 +1,6 @@
 # Tic-Tac-Toe Game Logic Documentation
 
-This document explains the logic behind a Vue.js-based Tic-Tac-Toe game implementation. The game features player vs player or player vs computer modes, multiple difficulty levels, and game state management.
+This document explains the logic behind a Vue.js-based Tic-Tac-Toe game implementation. The game features player-vs-player or player-vs. computer modes, multiple difficulty levels, and game state management.
 
 ## Core Components
 
@@ -52,6 +52,99 @@ const winConditions = [
 ];
 ```
 These represent all possible winning combinations using flat array indices (0-8).
+Here are visual representations of all 8 possible winning conditions in a 3×3 Tic-Tac-Toe game, formatted as ASCII diagrams with explanations:
+
+### 1. Horizontal Wins
+
+```
+Top Row Win:
+X | X | X
+---------
+  |   |  
+---------
+  |   |  
+
+Middle Row Win:
+  |   |  
+---------
+O | O | O
+---------
+  |   |  
+
+Bottom Row Win:
+  |   |  
+---------
+  |   |  
+---------
+X | X | X
+```
+
+### 2. Vertical Wins
+
+```
+Left Column Win:
+X |   |  
+---------
+X |   |  
+---------
+X |   |  
+
+Center Column Win:
+  | O |  
+---------
+  | O |  
+---------
+  | O |  
+
+Right Column Win:
+  |   | X
+---------
+  |   | X
+---------
+  |   | X
+```
+
+### 3. Diagonal Wins
+
+```
+Main Diagonal (Top-Left to Bottom-Right):
+X |   |  
+---------
+  | X |  
+---------
+  |   | X
+
+Anti-Diagonal (Top-Right to Bottom-Left):
+  |   | O
+---------
+  | O |  
+---------
+O |   |  
+```
+
+### All Conditions Summary Table
+
+| Win Type       | Positions | Example |
+|----------------|-----------|---------|
+| **Top Row**    | 0,1,2     | `X X X` |
+| **Middle Row** | 3,4,5     | `O O O` |
+| **Bottom Row** | 6,7,8     | `X X X` |
+| **Left Col**   | 0,3,6     | `X`<br>`X`<br>`X` |
+| **Center Col** | 1,4,7     | `O`<br>`O`<br>`O` |
+| **Right Col**  | 2,5,8     | `X`<br>`X`<br>`X` |
+| **Main Diag**  | 0,4,8     | `X`<br>` X`<br>`  X` |
+| **Anti-Diag**  | 2,4,6     | `  O`<br>` O`<br>`O` |
+
+Would you like me to provide these as actual image files (PNG/SVG) instead of ASCII art? I can generate those programmatically if needed.
+
+For your Vue.js game, these correspond to the win conditions array:
+```javascript
+const winConditions = [
+  [0,1,2], [3,4,5], [6,7,8], // Rows
+  [0,3,6], [1,4,7], [2,5,8], // Columns
+  [0,4,8], [2,4,6]           // Diagonals
+];
+```
 
 ## Core Game Logic
 
